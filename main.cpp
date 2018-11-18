@@ -8,24 +8,33 @@ using namespace std;
 
 int main()
 {
-	VideoCapture cap(0); // open the default camera
-	if (!cap.isOpened())  // check if we succeeded
+
+	VideoCapture webcam(0); // open the default camera
+	if (!webcam.isOpened())  // check if we succeeded
 		return -1;
 
-	Mat edges;
-	namedWindow("edges", 1);
+	namedWindow("Effects", 1);
+		
 	for (;;)
 	{
 		Mat frame;
-		cap >> frame; // get a new frame from camera
-		GaussianBlur(frame, frame, Size(7, 7), 1.5, 1.5);
-		cvtColor(frame, edges, COLOR_BGR2GRAY);
-		Mat blurred;
-		bilateralFilter(frame, blurred, 9, 300, 300);
-		Canny(edges, edges, 20, 40, 3);
-		cvtColor(edges, edges, CV_GRAY2BGR);
+		webcam >> frame; // get a new frame from camera
 
-		imshow("edges", blurred + edges);
+		// Transform Color to Greyscale Image
+		Mat grey_scale;
+		cvtColor(frame, grey_scale, COLOR_BGR2GRAY);
+
+		// Compute Gradient
+		Mat Gx, Gy;
+		Sobel(grey_scale, Gx, -1, 1, 0, 1);
+		Sobel(grey_scale, Gy, -1, 0, 1, 1);
+
+		// Get Gradient Norm
+		Mat G;
+		addWeighted(Gx.mul(Gx), 0.5, Gy.mul(Gy),0.5, 0, G, CV_32F);
+		sqrt(G, G);
+				
+		imshow("Effects", G);
 		if (waitKey(30) >= 0) break;
 	}
 	// the camera will be deinitialized automatically in VideoCapture destructor

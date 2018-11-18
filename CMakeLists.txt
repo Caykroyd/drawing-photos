@@ -8,5 +8,5 @@ FIND_PACKAGE(OpenCV REQUIRED)
 PROJECT(Project)
 
 INCLUDE_DIRECTORIES(${OpenCV_INCLUDE_DIRS})
-ADD_EXECUTABLE(main main.cpp)
+ADD_EXECUTABLE(main main.cpp linefilter.cpp linefilter.h)
 TARGET_LINK_LIBRARIES(main ${OpenCV_LIBS})
