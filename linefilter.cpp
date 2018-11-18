@@ -70,6 +70,7 @@ void LineFilter::Classify(const Mat& Gradient) {
 }
 
 template void LineFilter::Classify<float>(const Mat& Gradient);
+template void LineFilter::Classify<uchar>(const Mat& Gradient);
 
 void LineFilter::ApplyLineShaping(Mat& S) {
 
@@ -80,7 +81,7 @@ void LineFilter::ApplyLineShaping(Mat& S) {
 	
 	normalize(S, S, 255.0);
 
-	//S = Mat::ones(C[0].rows, C[0].cols, C[0].type()) - S;
+	S = Mat::ones(C[0].rows, C[0].cols, C[0].type()) - S;
 }
 
 const Mat& LineFilter::getC(int i) const {
