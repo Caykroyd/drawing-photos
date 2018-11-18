@@ -50,7 +50,8 @@ int main()
 	{
 		Mat frame;
 
-		webcam >> frame; // get a new frame from camera
+		//webcam >> frame; // get a new frame from camera
+		frame = imread("../kids.jpg");
 
 		// Transform Color to Greyscale Image
 		/*Mat grey_scale;
@@ -75,12 +76,15 @@ int main()
 		double minVal, maxVal;
 		minMaxLoc(G, &minVal, &maxVal);
 		
+		int threshold = 15;
 		for (int i = 0; i < m; i++){
-			for (int j = 0; j < n; j++)
+			for (int j = 0; j < n; j++){
+				//C.at<uchar>(i, j) = (G.at<float>(i, j) > threshold ? 255 : 0);
 				C.at<uchar>(i, j) = char(255 * ((G.at<float>(i,j) - minVal) / (maxVal - minVal)));
+			}
 		}
 
-		LineFilter sketcher(std::min(frame.cols, frame.rows) / 30);
+		LineFilter sketcher(std::min(frame.cols, frame.rows) / 50);
 		sketcher.Classify<float>(G);
 		
 		/*for(int k = 0; k < 8; k++)
@@ -98,8 +102,10 @@ int main()
 				drawingImg.at<uchar>(i, j) = char(255 * ((drawing.at<float>(i,j) - minVal) / (maxVal - minVal)));
 		}
 
+		imshow("Gradient", C);
 		imshow("Effects", drawingImg);
-		if (waitKey(30) >= 0) break;
+		//if (waitKey(30) >= 0) break;
+		waitKey();
 	}
 	// the camera will be deinitialized automatically in VideoCapture destructor
 	return 0;
