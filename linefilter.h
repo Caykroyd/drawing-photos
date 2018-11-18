@@ -21,7 +21,7 @@ public:
 
 	template <class T> void Classify(const Mat& Gradient);
 
-	void LineFilter::ApplyLineShaping(Mat& S);
+	void ApplyLineShaping(Mat& S);
 
 	const Mat& getC(int i) const;
 };
