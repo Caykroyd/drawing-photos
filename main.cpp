@@ -2,6 +2,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 
 #include <iostream>
+#include "linefilter.h"
 
 using namespace cv;
 using namespace std;
@@ -18,6 +19,7 @@ int main()
 	for (;;)
 	{
 		Mat frame;
+
 		webcam >> frame; // get a new frame from camera
 
 		// Transform Color to Greyscale Image
@@ -31,10 +33,13 @@ int main()
 
 		// Get Gradient Norm
 		Mat G;
-		addWeighted(Gx.mul(Gx), 0.5, Gy.mul(Gy),0.5, 0, G, CV_32F);
+		addWeighted(Gx.mul(Gx), 0.5, Gy.mul(Gy), 0.5, 0, G, CV_32F);
 		sqrt(G, G);
-				
-		imshow("Effects", G);
+
+		LineFilter sketcher(std::min(frame.cols, frame.rows) / 30);
+		Mat C_0 = sketcher.Classify<float>(G);
+
+		imshow("Effects", C_0);
 		if (waitKey(30) >= 0) break;
 	}
 	// the camera will be deinitialized automatically in VideoCapture destructor
