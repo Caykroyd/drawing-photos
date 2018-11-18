@@ -37,9 +37,15 @@ int main()
 		sqrt(G, G);
 
 		LineFilter sketcher(std::min(frame.cols, frame.rows) / 30);
-		Mat C_0 = sketcher.Classify<float>(G);
+		sketcher.Classify<float>(G);
+		
+		for(int k = 0; k < 8; k++)
+			imshow("C"+std::to_string(k), sketcher.getC(k));
 
-		imshow("Effects", C_0);
+		Mat drawing;
+		sketcher.ApplyLineShaping(drawing);
+
+		imshow("Effects", drawing);
 		if (waitKey(30) >= 0) break;
 	}
 	// the camera will be deinitialized automatically in VideoCapture destructor

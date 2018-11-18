@@ -44,7 +44,7 @@ inline Mat LineFilter::ApplyLineConvolution(const Mat& Gradient, const Mat& Line
 }
 
 template <class T>
-Mat LineFilter::Classify(const Mat& Gradient) {
+void LineFilter::Classify(const Mat& Gradient) {
 	
 	Mat G[8];
 	for (int k = 0; k < 8; k++)
@@ -52,9 +52,8 @@ Mat LineFilter::Classify(const Mat& Gradient) {
 	
 	int rows = Gradient.rows, cols = Gradient.cols;
 	
-	Mat C[8];
 	for (int k = 0; k < 8; k++)
-		C[k] = Mat::zeros(rows, cols, Gradient.type());
+		this->C[k] = Mat::zeros(rows, cols, Gradient.type());
 	
 	// Ci(p) =  G(p) if argmax_i{Gi(p)} = i // IS IT ARGMIN OR ARGMAX?
 	for (int i = 0; i < rows; i++) {
@@ -68,8 +67,22 @@ Mat LineFilter::Classify(const Mat& Gradient) {
 			C[max_index].at<T>(i, j) = Gradient.at<T>(i, j);
 		}
 	}
-
-	return C[0];
 }
 
-template Mat LineFilter::Classify<float>(const Mat& Gradient);
+template void LineFilter::Classify<float>(const Mat& Gradient);
+
+void LineFilter::ApplyLineShaping(Mat& S) {
+
+	S = Mat::zeros(C[0].rows, C[0].cols, C[0].type());
+
+	for (int k = 1; k < 8; k++)
+		add(S, ApplyLineConvolution(this->C[k], this->Line[k], this->kernel_anchor[k]), S);
+	
+	normalize(S, S, 255.0);
+
+	//S = Mat::ones(C[0].rows, C[0].cols, C[0].type()) - S;
+}
+
+const Mat& LineFilter::getC(int i) const {
+	return this->C[i];
+}

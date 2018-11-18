@@ -13,9 +13,15 @@ private:
 	Point kernel_anchor[8];
 	int kernel_length;
 
+	Mat C[8];
+
 	inline Mat ApplyLineConvolution(const Mat& Gradient, const Mat& Line, const Point kernelAnchor, const int ddepth) const;
 public:
 	LineFilter(int line_length);
 
-	template <class T> Mat Classify(const Mat& Gradient);
+	template <class T> void Classify(const Mat& Gradient);
+
+	void LineFilter::ApplyLineShaping(Mat& S);
+
+	const Mat& getC(int i) const;
 };
