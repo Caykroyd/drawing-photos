@@ -1,0 +1,22 @@
+Mat rotate(Mat src, double angle)
+{
+	Mat dst;
+	Point2f pt(src.cols / 2., src.rows / 2.);
+	Mat r = getRotationMatrix2D(pt, angle, 1.0);
+	warpAffine(src, dst, r, Size(src.cols, src.rows));
+	return dst;
+}
+
+int main()
+{
+		Mat src = Mat::eye(350,350, CV_8U)*255;
+
+		Mat dst = Mat::zeros(350, 350, CV_8U);
+		for(int k = 0; k < 8; k++)
+			dst += rotate(src, k * 22.5);
+
+		imshow("src", dst);
+		waitKey(0);
+
+	return 0;
+}
