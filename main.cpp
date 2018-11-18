@@ -51,7 +51,7 @@ int main()
 		Mat frame;
 
 		//webcam >> frame; // get a new frame from camera
-		frame = imread("../kids.jpg");
+		frame = imread("../plate.jpg");
 
 		// Transform Color to Greyscale Image
 		/*Mat grey_scale;
@@ -84,7 +84,7 @@ int main()
 			}
 		}
 
-		LineFilter sketcher(std::min(frame.cols, frame.rows) / 50);
+		LineFilter sketcher(std::min(frame.cols, frame.rows) / 30);
 		sketcher.Classify<float>(G);
 		
 		/*for(int k = 0; k < 8; k++)

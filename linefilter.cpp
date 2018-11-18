@@ -6,11 +6,11 @@ using namespace std;
 LineFilter::LineFilter(int line_length) {
 
 	this->kernel_length = line_length;
-	this->kernel_length_sqrt = std::ceil(std::sqrt(line_length));
+	this->kernel_length_sqrt = std::floor(std::sqrt(line_length)) + 1;
 
-	Mat L_horiz = Mat::ones(1, kernel_length, CV_8U);
-	Mat L_vert = Mat::ones(kernel_length, 1, CV_8U);
-	Mat L_diag = Mat::eye(kernel_length_sqrt, kernel_length_sqrt, CV_8U);
+	Mat L_horiz = Mat::ones(1, kernel_length, CV_32F) / kernel_length;
+	Mat L_vert = Mat::ones(kernel_length, 1, CV_32F) / kernel_length;
+	Mat L_diag = Mat::eye(kernel_length_sqrt, kernel_length_sqrt, CV_32F) / kernel_length_sqrt;
 	Mat L_diagT = L_diag.t();
 
 	this->Line[0] = L_horiz; // RIGHT
