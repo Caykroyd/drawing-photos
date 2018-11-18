@@ -12,6 +12,7 @@ private:
 	Mat Line[8];
 	Point kernel_anchor[8];
 	int kernel_length;
+	int kernel_length_sqrt;
 
 	Mat C[8];
 

@@ -6,10 +6,11 @@ using namespace std;
 LineFilter::LineFilter(int line_length) {
 
 	this->kernel_length = line_length;
+	this->kernel_length_sqrt = std::ceil(std::sqrt(line_length));
 
 	Mat L_horiz = Mat::ones(1, kernel_length, CV_8U);
 	Mat L_vert = Mat::ones(kernel_length, 1, CV_8U);
-	Mat L_diag = Mat::eye(kernel_length, kernel_length, CV_8U);
+	Mat L_diag = Mat::eye(kernel_length_sqrt, kernel_length_sqrt, CV_8U);
 	Mat L_diagT = L_diag.t();
 
 	this->Line[0] = L_horiz; // RIGHT
@@ -26,11 +27,11 @@ LineFilter::LineFilter(int line_length) {
 	this->kernel_anchor[0] = Point(0, 0); // RIGHT
 	this->kernel_anchor[1] = Point(0, 0); // BOTTOM-RIGHT
 	this->kernel_anchor[2] = Point(0, 0); // DOWN
-	this->kernel_anchor[3] = Point(kernel_length - 1, 0); // BOTTOM-LEFT
+	this->kernel_anchor[3] = Point(kernel_length_sqrt - 1, 0); // BOTTOM-LEFT
 	this->kernel_anchor[4] = Point(kernel_length - 1, 0); // LEFT
-	this->kernel_anchor[5] = Point(kernel_length - 1, kernel_length - 1); // TOP-LEFT
+	this->kernel_anchor[5] = Point(kernel_length_sqrt - 1, kernel_length_sqrt - 1); // TOP-LEFT
 	this->kernel_anchor[6] = Point(0, kernel_length - 1); // UP
-	this->kernel_anchor[7] = Point(0, kernel_length - 1); // TOP-RIGHT
+	this->kernel_anchor[7] = Point(0, kernel_length_sqrt - 1); // TOP-RIGHT
 }
 
 inline Mat LineFilter::ApplyLineConvolution(const Mat& Gradient, const Mat& Line, const Point kernel_anchor, const int ddepth = -1) const{
