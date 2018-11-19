@@ -10,9 +10,8 @@ using namespace std;
 class LineFilter {
 private:
 	Mat Line[8];
-	Point kernel_anchor[8];
+	Point kernel_anchor;
 	int kernel_length;
-	int kernel_length_sqrt;
 
 	Mat C[8];
 

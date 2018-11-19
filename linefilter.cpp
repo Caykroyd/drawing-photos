@@ -5,33 +5,20 @@ using namespace std;
 
 LineFilter::LineFilter(int line_length) {
 
-	this->kernel_length = line_length;
-	this->kernel_length_sqrt = std::floor(std::sqrt(line_length)) + 1;
+	int r = std::floor(line_length / 2.);
+	this->kernel_length = 2*r+1;
 
-	Mat L_horiz = Mat::ones(1, kernel_length, CV_32F) / kernel_length;
-	Mat L_vert = Mat::ones(kernel_length, 1, CV_32F) / kernel_length;
-	Mat L_diag = Mat::eye(kernel_length_sqrt, kernel_length_sqrt, CV_32F) / kernel_length_sqrt;
-	Mat L_diagT = L_diag.t();
-
-	this->Line[0] = L_horiz; // RIGHT
-	this->Line[1] = L_diag; // BOTTOM-RIGHT
-	this->Line[2] = L_vert; // DOWN
-	this->Line[3] = L_diagT; // BOTTOM-LEFT
-	this->Line[4] = L_horiz; // LEFT
-	this->Line[5] = L_diag; // TOP-LEFT
-	this->Line[6] = L_vert; // UP
-	this->Line[7] = L_diagT; // TOP-RIGHT
-
+	Mat L_horiz = Mat::zeros(kernel_length, kernel_length, CV_32F);
+	L_horiz.row(r) = Mat::ones(1, kernel_length, CV_32F);
+	Point2f pt(r, r);
+	for (int k = 0; k < 8; k++) {
+		Mat Rot = getRotationMatrix2D(pt, k * 22.5, 1.0);
+		warpAffine(L_horiz, this->Line[k], Rot, Size(kernel_length, kernel_length));
+		imshow("Line " + std::to_string(k), Line[k]);
+	}
 	// The kernel anchors define the center point on the kernel array. In other words, they define the direction "pointed" by the line vector
 	// Note that the kernel anchors are set as (x,y) on the image, and NOT as in a matrix (i,j)
-	this->kernel_anchor[0] = Point(0, 0); // RIGHT
-	this->kernel_anchor[1] = Point(0, 0); // BOTTOM-RIGHT
-	this->kernel_anchor[2] = Point(0, 0); // DOWN
-	this->kernel_anchor[3] = Point(kernel_length_sqrt - 1, 0); // BOTTOM-LEFT
-	this->kernel_anchor[4] = Point(kernel_length - 1, 0); // LEFT
-	this->kernel_anchor[5] = Point(kernel_length_sqrt - 1, kernel_length_sqrt - 1); // TOP-LEFT
-	this->kernel_anchor[6] = Point(0, kernel_length - 1); // UP
-	this->kernel_anchor[7] = Point(0, kernel_length_sqrt - 1); // TOP-RIGHT
+	this->kernel_anchor = Point(r, r);
 }
 
 inline Mat LineFilter::ApplyLineConvolution(const Mat& Gradient, const Mat& Line, const Point kernel_anchor, const int ddepth = -1) const{
@@ -49,7 +36,7 @@ void LineFilter::Classify(const Mat& Gradient) {
 	
 	Mat G[8];
 	for (int k = 0; k < 8; k++)
-		G[k] = ApplyLineConvolution(Gradient, this->Line[k], this->kernel_anchor[k], -1);
+		G[k] = ApplyLineConvolution(Gradient, this->Line[k], this->kernel_anchor, -1);
 	
 	int rows = Gradient.rows, cols = Gradient.cols;
 	
@@ -78,7 +65,7 @@ void LineFilter::ApplyLineShaping(Mat& S) {
 	S = Mat::zeros(C[0].rows, C[0].cols, C[0].type());
 
 	for (int k = 1; k < 8; k++)
-		add(S, ApplyLineConvolution(this->C[k], this->Line[k], this->kernel_anchor[k]), S);
+		add(S, ApplyLineConvolution(this->C[k], this->Line[k], this->kernel_anchor), S);
 	
 	normalize(S, S, 255.0);
 
