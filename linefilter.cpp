@@ -58,8 +58,8 @@ void LineFilter::Classify(const Mat& Gradient) {
 		}
 	}
 
-	/*for(int i = 0; i < 8; i++)
-		imshow("C" + std::to_string(i), C[i]);*/
+	//for(int i = 0; i < 8; i++)
+	//	imshow("C" + std::to_string(i), ToChar(C[i]));
 
 }
 
@@ -81,4 +81,22 @@ void LineFilter::ApplyLineShaping(Mat& S) {
 
 const Mat& LineFilter::getC(int i) const {
 	return this->C[i];
+}
+
+Mat ToChar(const Mat& src) {
+	int m = src.rows, n = src.cols;
+	Mat C(m, n, CV_8U);
+
+	double minVal, maxVal;
+	minMaxLoc(src, &minVal, &maxVal);
+
+	int threshold = 15;
+	for (int i = 0; i < m; i++) {
+		for (int j = 0; j < n; j++) {
+			//C.at<uchar>(i, j) = (G.at<float>(i, j) > threshold ? 255 : 0);
+			C.at<uchar>(i, j) = char(255 * ((src.at<float>(i, j) - minVal) / (maxVal - minVal)));
+		}
+	}
+
+	return C;
 }
