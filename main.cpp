@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include "linefilter.h"
+#include "tonemapper.h"
 
 using namespace cv;
 using namespace std;
@@ -37,28 +38,8 @@ void gradient(const Mat& Ic, Mat& G)
 	}
 }
 
-int main()
+void DrawSketch(const Mat& frame)
 {
-	namedWindow("Effects", 1);
-
-	Mat frame;
-
-	//webcam >> frame; // get a new frame from camera
-	frame = imread("../plate.jpg");
-
-	// Transform Color to Greyscale Image
-	/*Mat grey_scale;
-	cvtColor(frame, grey_scale, COLOR_BGR2GRAY);
-
-	// Compute Gradient
-	Mat Gx, Gy;
-	Scharr(grey_scale, Gx, -1, 1, 0, 3);
-	Scharr(grey_scale, Gy, -1, 0, 1, 3);
-
-	// Get Gradient Norm
-	Mat G;
-	addWeighted(Gx.mul(Gx), 0.5, Gy.mul(Gy), 0.5, 0, G, CV_32F);
-	sqrt(G, G);*/
 
 	Mat G;
 	gradient(frame, G);
@@ -68,12 +49,12 @@ int main()
 
 	double minVal, maxVal;
 	minMaxLoc(G, &minVal, &maxVal);
-	
+
 	int threshold = 15;
-	for (int i = 0; i < m; i++){
-		for (int j = 0; j < n; j++){
+	for (int i = 0; i < m; i++) {
+		for (int j = 0; j < n; j++) {
 			//C.at<uchar>(i, j) = (G.at<float>(i, j) > threshold ? 255 : 0);
-			C.at<uchar>(i, j) = char(255 * ((G.at<float>(i,j) - minVal) / (maxVal - minVal)));
+			C.at<uchar>(i, j) = char(255 * ((G.at<float>(i, j) - minVal) / (maxVal - minVal)));
 		}
 	}
 
@@ -86,18 +67,76 @@ int main()
 	Mat drawing;
 	sketcher.ApplyLineShaping(drawing);
 
-	Mat drawingImg(m, n, CV_8U);
+	Mat Sketch(m, n, CV_8U);
 
 	minMaxLoc(drawing, &minVal, &maxVal);
-	
-	for (int i = 0; i < m; i++){
+
+	for (int i = 0; i < m; i++) {
 		for (int j = 0; j < n; j++)
-			drawingImg.at<uchar>(i, j) = char(255 * ((drawing.at<float>(i,j) - minVal) / (maxVal - minVal)));
+			Sketch.at<uchar>(i, j) = char(255 * ((drawing.at<float>(i, j) - minVal) / (maxVal - minVal)));
 	}
 
 	imshow("Gradient", C);
-	imshow("Effects", drawingImg);
+	imshow("Sketch", Sketch);
+}
+
+template <class T>
+void remap(const Mat& input, Mat& output) {
+	int n = input.rows, m = input.cols;
+	
+	double minVal, maxVal;
+	minMaxLoc(input, &minVal, &maxVal);
+	cout << minVal << " / " << maxVal << endl;
+	for (int i = 0; i < m; i++) {
+		for (int j = 0; j < n; j++)
+			output.at<uchar>(i, j) = char(255 * ((input.at<T>(i, j) - minVal) / (maxVal - minVal)));
+	}
+}
+template void remap<uchar>(const Mat& input, Mat& output);
+template void remap<float>(const Mat& input, Mat& output);
+
+int main()
+{
+	namedWindow("Drawing", 1);
+
+	Mat frame;
+
+	//webcam >> frame; // get a new frame from camera
+	frame = imread("../plate.jpg");
+
+	// Transform Color to Greyscale Image
+	Mat grey_scale;
+	cvtColor(frame, grey_scale, COLOR_BGR2GRAY);
+	
+	/*
+	// Compute Gradient
+	Mat Gx, Gy;
+	Scharr(grey_scale, Gx, -1, 1, 0, 3);
+	Scharr(grey_scale, Gy, -1, 0, 1, 3);
+
+	// Get Gradient Norm
+	Mat G;
+	addWeighted(Gx.mul(Gx), 0.5, Gy.mul(Gy), 0.5, 0, G, CV_32F);
+	sqrt(G, G);*/
+
 	//if (waitKey(30) >= 0) break;
+
+	//DrawSketch(frame);
+
+	ToneMapper tone_mapper = ToneMapper();
+	
+	int m = frame.rows, n = frame.cols;
+	Mat tone_image(m, n, CV_8U);
+	tone_mapper.ComputeToneImage<uchar>(grey_scale, tone_image);
+	imshow("Tone", tone_image);
+
+	// TODO:
+	//Mat& pencil_texture = imread("../pencil_texture.jpg");
+	//Mat& beta_image = tone_mapper.SolveConjugateGradient(tone_image, pencil_texture);
+	//Mat& final_texture = tone_mapper.MultipliedTextureMap(pencil_texture, beta_image);
+
+	// Calculate the sum of the sketch + tone: R = S.T (element-wise multiplication)
+
 	waitKey();
 
 	return 0;
