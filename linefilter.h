@@ -5,8 +5,11 @@
 
 #include <iostream>
 
+#include "tools.h"
+
 using namespace cv;
 using namespace std;
+using namespace tools;
 
 
 class LineFilter {

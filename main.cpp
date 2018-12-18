@@ -4,140 +4,80 @@
 #include <iostream>
 #include "linefilter.h"
 #include "tonemapper.h"
+#include "tools.h"
 
 using namespace cv;
 using namespace std;
+using namespace tools;
 
-void gradient(const Mat& Ic, Mat& G)
-{
-	Mat I;
-	cvtColor(Ic, I, CV_BGR2GRAY);
-
-	int m = I.rows, n = I.cols;
-	G = Mat(m, n, CV_32F);
-
-	for (int i = 0; i < m; i++) {
-		for (int j = 0; j < n; j++) {
-			// Compute squared gradient (except on borders)
-			// ...
-			// G2.at<float>(i, j) = ...
-			float dx, dy;
-
-			if(i > 0 && i < m - 1)
-				dy = (float(I.at<uchar>(i + 1, j)) - float(I.at<uchar>(i - 1, j))) / 2;
-			else
-				dy = 0;
-			
-			if(j > 0 && j < n - 1)
-				dx = (float(I.at<uchar>(i, j + 1)) - float(I.at<uchar>(i, j - 1))) / 2;
-			else
-				dx = 0;
-
-			G.at<float>(i, j) = sqrt(dx * dx + dy * dy);
-		}
-	}
-}
-
-void DrawSketch(const Mat& frame)
+void DrawSketch(const Mat& frame, Mat& sketch, bool show_grad = false, bool show_classes = false)
 {
 
 	Mat G;
-	gradient(frame, G);
-
+	Gradient(frame, G);
 	int m = G.rows, n = G.cols;
-	Mat C(m, n, CV_8U);
-
-	double minVal, maxVal;
-	minMaxLoc(G, &minVal, &maxVal);
-
-	int threshold = 15;
-	for (int i = 0; i < m; i++) {
-		for (int j = 0; j < n; j++) {
-			//C.at<uchar>(i, j) = (G.at<float>(i, j) > threshold ? 255 : 0);
-			C.at<uchar>(i, j) = char(255 * ((G.at<float>(i, j) - minVal) / (maxVal - minVal)));
-		}
+	
+	if (show_grad)
+	{
+		int threshold = 0; // 15
+		Mat& G_char = Mat(G.rows, G.cols, CV_8U);
+		Remap<float>(G, G_char, threshold);
+		imshow("Gradient", G_char);
 	}
 
-	LineFilter sketcher(std::min(frame.cols, frame.rows) / 30);
+	LineFilter sketcher(std::min(G.cols, G.rows) / 30);
 	sketcher.Classify<float>(G);
 
-	/*for(int k = 0; k < 8; k++)
-		imshow("C"+std::to_string(k), sketcher.getC(k));*/
-
-	Mat drawing;
-	sketcher.ApplyLineShaping(drawing);
-
-	Mat Sketch(m, n, CV_8U);
-
-	minMaxLoc(drawing, &minVal, &maxVal);
-
-	for (int i = 0; i < m; i++) {
-		for (int j = 0; j < n; j++)
-			Sketch.at<uchar>(i, j) = char(255 * ((drawing.at<float>(i, j) - minVal) / (maxVal - minVal)));
+	if (show_classes) 
+	{
+		for (int k = 0; k < 8; k++)	
+			imshow("C_" + std::to_string(k), sketcher.getC(k));
 	}
 
-	imshow("Gradient", C);
-	imshow("Sketch", Sketch);
+
+	sketch = Mat(m, n, CV_8U);
+
+	Mat sketch_float;
+	sketcher.ApplyLineShaping(sketch_float);
+
+	Remap<float> (sketch_float, sketch);
 }
 
-template <class T>
-void remap(const Mat& input, Mat& output) {
-	int n = input.rows, m = input.cols;
-	
-	double minVal, maxVal;
-	minMaxLoc(input, &minVal, &maxVal);
-	cout << minVal << " / " << maxVal << endl;
-	for (int i = 0; i < m; i++) {
-		for (int j = 0; j < n; j++)
-			output.at<uchar>(i, j) = char(255 * ((input.at<T>(i, j) - minVal) / (maxVal - minVal)));
-	}
-}
-template void remap<uchar>(const Mat& input, Mat& output);
-template void remap<float>(const Mat& input, Mat& output);
 
 int main()
 {
-	namedWindow("Drawing", 1);
-
 	Mat frame;
-
 	//webcam >> frame; // get a new frame from camera
 	frame = imread("../plate.jpg");
+	int m = frame.rows, n = frame.cols;
+	   
+
+	Mat& sketch = Mat();
+	DrawSketch(frame, sketch);
+	imshow("Sketch", sketch);
+
 
 	// Transform Color to Greyscale Image
-	Mat grey_scale;
+	Mat grey_scale(m, n, CV_32F);
 	cvtColor(frame, grey_scale, COLOR_BGR2GRAY);
 	
-	/*
-	// Compute Gradient
-	Mat Gx, Gy;
-	Scharr(grey_scale, Gx, -1, 1, 0, 3);
-	Scharr(grey_scale, Gy, -1, 0, 1, 3);
+	ToneMapper tone_mapper = ToneMapper(42, 29, 29);
 
-	// Get Gradient Norm
-	Mat G;
-	addWeighted(Gx.mul(Gx), 0.5, Gy.mul(Gy), 0.5, 0, G, CV_32F);
-	sqrt(G, G);*/
-
-	//if (waitKey(30) >= 0) break;
-
-	//DrawSketch(frame);
-
-	ToneMapper tone_mapper = ToneMapper();
-	
-	int m = frame.rows, n = frame.cols;
-	Mat tone_image(m, n, CV_8U);
+	Mat& tone_image = Mat(grey_scale.rows, grey_scale.cols, CV_8U);
 	tone_mapper.ComputeToneImage<uchar>(grey_scale, tone_image);
 	imshow("Tone", tone_image);
 
 	// TODO:
-	//Mat& pencil_texture = imread("../pencil_texture.jpg");
+	//Mat& pencil_texture = imread("../pencil_texture.png");
 	//Mat& beta_image = tone_mapper.SolveConjugateGradient(tone_image, pencil_texture);
 	//Mat& final_texture = tone_mapper.MultipliedTextureMap(pencil_texture, beta_image);
 
 	// Calculate the sum of the sketch + tone: R = S.T (element-wise multiplication)
+	//Mat drawing(m, n, CV_8U);
+	//cv::multiply(sketch, final_texture, drawing);
 
 	waitKey();
+	//if (waitKey(30) >= 0) break;
 
 	return 0;
 }

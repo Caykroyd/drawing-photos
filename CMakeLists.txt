@@ -8,5 +8,5 @@ FIND_PACKAGE(OpenCV REQUIRED)
 PROJECT(Project)
 
 INCLUDE_DIRECTORIES(${OpenCV_INCLUDE_DIRS})
-ADD_EXECUTABLE(main main.cpp linefilter.cpp linefilter.h tonemapper.cpp tonemapper.h)
+ADD_EXECUTABLE(main main.cpp linefilter.cpp linefilter.h tonemapper.cpp tonemapper.h tools.cpp tools.h)
 TARGET_LINK_LIBRARIES(main ${OpenCV_LIBS})

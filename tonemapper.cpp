@@ -30,11 +30,32 @@ void ToneMapper::GenerateModelHistogram()
 {
 	for (int v = 0; v < 256; v++)
 		this->model_histogram[v] = P(v);
+
+	PlotHistogram(model_histogram);
 }
 
-inline int Normalize255(float value, float minVal, float maxVal)
+void ToneMapper::PlotHistogram(float histogram[256], string tag)
 {
-	return (int) round(255 * (value - minVal) / (maxVal - minVal));
+	int l = 256, b = 20;
+
+	float maxVal = 1;
+	for (int j = 0; j < 256; j++) {
+		if (histogram[j]*255 > maxVal)
+			maxVal = histogram[j]*255;
+	}
+	int scale = 255 / maxVal;
+
+	Mat Hist(256+2*b, 256+2*b, CV_8U);
+	for (int j = 0; j < 256; j++) {
+
+		for (int i = 0; i < 255; i++)
+			Hist.at<uchar>(i + b, j + b) = 255;
+
+		for (int i = 255 - 255 * histogram[j] * scale; i < 255; i++)
+			Hist.at<uchar>(i + b, j + b) = 0;
+
+	}
+	imshow(tag + " (scale=" + to_string(scale) + "x)", Hist);
 }
 
 template<class T>
@@ -58,7 +79,7 @@ int* ToneMapper::MatchHistograms(const Mat& input, float reference_bin[256]) con
 		A += input_bin[k];
 		B += reference_bin[k];
 	}
-	cout << "Input bin =" << A << ", Reference bin =" << B << endl;
+	cout << "Histogram Integrals: Input bin =" << A << ", Reference bin =" << B << endl;
 
 	int* mapping = new int[256];
 	float S_in = 0, S_ref = 0;
@@ -90,7 +111,9 @@ ToneMapper::ToneMapper(float w_b, float w_m, float w_d, float sigma_b, float u_a
 template <class T>
 void ToneMapper::ComputeToneImage(const Mat& input, Mat& tone_image) {
 	
-	int m = input.rows, n = input.cols;
+	assert(input.rows == tone_image.rows && input.cols == tone_image.cols);
+
+	int m = tone_image.rows, n = tone_image.cols;
 
 	int* histogram = MatchHistograms<T>(input, model_histogram);
 	
@@ -111,6 +134,16 @@ void ToneMapper::ComputeToneImage(const Mat& input, Mat& tone_image) {
 
 template void ToneMapper::ComputeToneImage<float>(const Mat& input, Mat& tone_image);
 template void ToneMapper::ComputeToneImage<uchar>(const Mat& input, Mat& tone_image);
+
+void ToneMapper::SolveConjugateGradient(const Mat& ToneImage, const Mat& PencilTexture, Mat & BetaImage) const
+{
+	// TODO: Returns the beta parameter matrix by solving the conjugate gradient. ToneImage is type uchar.
+
+	Mat& PencilTexureCropped = PencilTexture(cv::Range(0, ToneImage.rows), cv::Range(0, ToneImage.cols));
+	BetaImage = Mat(ToneImage.rows, ToneImage.cols, CV_32F);
+	// Calculate the Beta function...
+
+}
 
 void ToneMapper::MultipliedTextureMap(const Mat& PencilTexture, const Mat& BetaImage, Mat& T) const
 {

@@ -7,8 +7,11 @@
 #include <random>
 #include <iostream>
 
+#include "tools.h"
+
 using namespace cv;
 using namespace std;
+using namespace tools;
 
 class ToneMapper {
 private:
@@ -27,6 +30,7 @@ private:
 
 	// Generates a discrete function representing P : [0,255] -> [0,255]
 	void GenerateModelHistogram();
+	void PlotHistogram(float histogram[256], string = "Histogram");
 
 	// Returns a mapping to the reference histogram from the histogram found by counting pixel intensities on input
 	template <class T> int* MatchHistograms(const Mat& input, float reference[256]) const;
