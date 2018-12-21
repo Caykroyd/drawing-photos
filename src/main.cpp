@@ -20,7 +20,7 @@ void DrawSketch(const Mat& frame, Mat& sketch, bool show_grad = false, bool show
 	if (show_grad)
 	{
 		int threshold = 0; // 15
-		Mat& G_char = Mat(G.rows, G.cols, CV_8U);
+		Mat G_char = Mat(G.rows, G.cols, CV_8U);
 		Remap<float>(G, G_char, threshold);
 		imshow("Gradient", G_char);
 	}
@@ -48,14 +48,12 @@ int main()
 {
 	Mat frame;
 	//webcam >> frame; // get a new frame from camera
-	frame = imread("../plate.jpg");
+	frame = imread("../image/plate.jpg");
 	int m = frame.rows, n = frame.cols;
-	   
 
-	Mat& sketch = Mat();
+	Mat sketch = Mat();
 	DrawSketch(frame, sketch);
 	imshow("Sketch", sketch);
-
 
 	// Transform Color to Greyscale Image
 	Mat grey_scale(m, n, CV_32F);
@@ -63,12 +61,12 @@ int main()
 	
 	ToneMapper tone_mapper = ToneMapper(42, 29, 29);
 
-	Mat& tone_image = Mat(grey_scale.rows, grey_scale.cols, CV_8U);
+	Mat tone_image = Mat(grey_scale.rows, grey_scale.cols, CV_8U);
 	tone_mapper.ComputeToneImage<uchar>(grey_scale, tone_image);
 	imshow("Tone", tone_image);
 
 	// TODO:
-	//Mat& pencil_texture = imread("../pencil_texture.png");
+	//Mat& pencil_texture = imread("../texture/pencil_texture.png");
 	//Mat& beta_image = tone_mapper.SolveConjugateGradient(tone_image, pencil_texture);
 	//Mat& final_texture = tone_mapper.MultipliedTextureMap(pencil_texture, beta_image);
 

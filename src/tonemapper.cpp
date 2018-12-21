@@ -139,7 +139,7 @@ void ToneMapper::SolveConjugateGradient(const Mat& ToneImage, const Mat& PencilT
 {
 	// TODO: Returns the beta parameter matrix by solving the conjugate gradient. ToneImage is type uchar.
 
-	Mat& PencilTexureCropped = PencilTexture(cv::Range(0, ToneImage.rows), cv::Range(0, ToneImage.cols));
+	Mat PencilTexureCropped = PencilTexture(cv::Range(0, ToneImage.rows), cv::Range(0, ToneImage.cols));
 	BetaImage = Mat(ToneImage.rows, ToneImage.cols, CV_32F);
 	// Calculate the Beta function...
 
