@@ -43,6 +43,18 @@ void DrawSketch(const Mat& frame, Mat& sketch, bool show_grad = false, bool show
 	Remap<float> (sketch_float, sketch);
 }
 
+void combineDrawing(const Mat& sketch, const Mat& texture, Mat& drawing) {
+    int m = sketch.rows, n = sketch.cols;
+
+    Mat drawing_float(m, n, CV_32F), sketch_float(m, n, CV_32F), texture_float(m, n, CV_32F);
+
+	// Convert sketch and texture to float for multiplication
+	sketch.convertTo(sketch_float, CV_32F);
+	texture.convertTo(texture_float, CV_32F);
+
+	multiply(sketch_float, texture_float, drawing_float);
+	Remap<float>(drawing_float, drawing, 0);
+}
 
 int main()
 {
@@ -58,6 +70,12 @@ int main()
 	// Transform Color to Greyscale Image
 	Mat grey_scale(m, n, CV_32F);
 	cvtColor(frame, grey_scale, COLOR_BGR2GRAY);
+
+	// Get YUV channels
+	Mat colored;
+    cvtColor(frame, colored, COLOR_BGR2YUV);
+    vector<Mat> YUV;
+    split(colored, YUV);
 	
 	ToneMapper tone_mapper = ToneMapper(42, 29, 29);
 
@@ -71,8 +89,16 @@ int main()
 	//Mat& final_texture = tone_mapper.MultipliedTextureMap(pencil_texture, beta_image);
 
 	// Calculate the sum of the sketch + tone: R = S.T (element-wise multiplication)
-	//Mat drawing(m, n, CV_8U);
-	//cv::multiply(sketch, final_texture, drawing);
+	Mat drawing(m, n, CV_8U);
+	combineDrawing(sketch, tone_image, drawing);
+
+    imshow("Drawing", drawing);
+
+    // Generate colored drawing
+    YUV[0] = drawing;
+    merge(YUV, colored);
+    cvtColor(colored, colored, COLOR_YUV2BGR);
+    imshow("Colored", colored);
 
 	waitKey();
 	//if (waitKey(30) >= 0) break;
