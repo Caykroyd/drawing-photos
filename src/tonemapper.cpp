@@ -68,10 +68,10 @@ int* ToneMapper::MatchHistograms(const Mat& input, float reference_bin[256]) con
 	double minVal, maxVal;
 	minMaxLoc(input, &minVal, &maxVal);
 	int m = input.rows, n = input.cols;
-	for (int i = 0; i < m; i++)
-		for (int j = 0; j < n; j++) {
+	for (int i = 0; i < m; i++) {
+		for (int j = 0; j < n; j++)
 			input_bin[Normalize255(input.at<uchar>(i, j), minVal, maxVal)] += 1.0f / (m*n);
-		}
+	}
 
 	// Assure our bins are correctly summing to unity.
 	float A = 0, B = 0;
@@ -85,7 +85,7 @@ int* ToneMapper::MatchHistograms(const Mat& input, float reference_bin[256]) con
 	float S_in = 0, S_ref = 0;
 	for (int k = 0, q = 0; k < 256; k++)
 	{
-		while (S_in > S_ref && q < 256) {
+		while (S_in > S_ref && q < 255) {
 			S_ref += reference_bin[q];
 			q++;
 		}
@@ -135,11 +135,11 @@ void ToneMapper::ComputeToneImage(const Mat& input, Mat& tone_image) {
 template void ToneMapper::ComputeToneImage<float>(const Mat& input, Mat& tone_image);
 template void ToneMapper::ComputeToneImage<uchar>(const Mat& input, Mat& tone_image);
 
-void ToneMapper::SolveConjugateGradient(const Mat& ToneImage, const Mat& PencilTexture, Mat & BetaImage) const
+void ToneMapper::SolveConjugateGradient(const Mat& ToneImage, const Mat& PencilTexture, Mat& BetaImage) const
 {
 	// TODO: Returns the beta parameter matrix by solving the conjugate gradient. ToneImage is type uchar.
 
-	Mat PencilTexureCropped = PencilTexture(cv::Range(0, ToneImage.rows), cv::Range(0, ToneImage.cols));
+	Mat PencilTextureCropped = PencilTexture(cv::Range(0, ToneImage.rows), cv::Range(0, ToneImage.cols));
 	BetaImage = Mat(ToneImage.rows, ToneImage.cols, CV_32F);
 	// Calculate the Beta function...
 

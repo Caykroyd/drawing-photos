@@ -56,11 +56,10 @@ void combineDrawing(const Mat& sketch, const Mat& texture, Mat& drawing) {
 	Remap<float>(drawing_float, drawing, 0);
 }
 
-int main()
-{
+int main() {
 	Mat frame;
 	//webcam >> frame; // get a new frame from camera
-	frame = imread("../image/plate.jpg");
+	frame = imread("../../image/photo.jpg");
 	int m = frame.rows, n = frame.cols;
 
 	Mat sketch = Mat();
@@ -84,8 +83,9 @@ int main()
 	imshow("Tone", tone_image);
 
 	// TODO:
-	//Mat& pencil_texture = imread("../texture/pencil_texture.png");
-	//Mat& beta_image = tone_mapper.SolveConjugateGradient(tone_image, pencil_texture);
+	//Mat& pencil_texture = imread("../../texture/pencil_texture.png");
+	//Mat& beta_image;
+	// tone_mapper.SolveConjugateGradient(tone_image, pencil_texture, beta_image);
 	//Mat& final_texture = tone_mapper.MultipliedTextureMap(pencil_texture, beta_image);
 
 	// Calculate the sum of the sketch + tone: R = S.T (element-wise multiplication)

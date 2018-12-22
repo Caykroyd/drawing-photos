@@ -11,6 +11,4 @@ SET(SRC_DIRECTORY ${ROOT_DIRECTORY}/src)
 PROJECT(drawing-photos)
 
 INCLUDE_DIRECTORIES(${OpenCV_INCLUDE_DIRS})
-#ADD_EXECUTABLE(main main.cpp linefilter.cpp linefilter.h tonemapper.cpp tonemapper.h tools.cpp tools.h)
-#TARGET_LINK_LIBRARIES(main ${OpenCV_LIBS})
 ADD_SUBDIRECTORY(${SRC_DIRECTORY})
