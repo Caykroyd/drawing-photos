@@ -65,6 +65,7 @@ int main() {
 	Mat sketch = Mat();
 	DrawSketch(frame, sketch);
 	imshow("Sketch", sketch);
+    imwrite("../../results/sketch.jpg", sketch);
 
 	// Transform Color to Greyscale Image
 	Mat grey_scale(m, n, CV_32F);
@@ -81,24 +82,30 @@ int main() {
 	Mat tone_image = Mat(grey_scale.rows, grey_scale.cols, CV_8U);
 	tone_mapper.ComputeToneImage<uchar>(grey_scale, tone_image);
 	imshow("Tone", tone_image);
+    imwrite("../../results/tone.jpg", tone_image);
 
 	// TODO:
-	//Mat& pencil_texture = imread("../../texture/pencil_texture.png");
-	//Mat& beta_image;
-	// tone_mapper.SolveConjugateGradient(tone_image, pencil_texture, beta_image);
+	Mat texture_frame = imread("../../texture/pencil_texture.png");
+	Mat pencil_texture;
+    cvtColor(texture_frame, pencil_texture, COLOR_BGR2GRAY);
+	Mat beta_image(m, n, CV_8U);
+	tone_mapper.SolveConjugateGradient(tone_image, pencil_texture, beta_image);
 	//Mat& final_texture = tone_mapper.MultipliedTextureMap(pencil_texture, beta_image);
 
 	// Calculate the sum of the sketch + tone: R = S.T (element-wise multiplication)
 	Mat drawing(m, n, CV_8U);
-	combineDrawing(sketch, tone_image, drawing);
+	//combineDrawing(sketch, tone_image, drawing);
+    combineDrawing(sketch, beta_image, drawing);
 
     imshow("Drawing", drawing);
+    imwrite("../../results/drawing.jpg", drawing);
 
     // Generate colored drawing
     YUV[0] = drawing;
     merge(YUV, colored);
     cvtColor(colored, colored, COLOR_YUV2BGR);
     imshow("Colored", colored);
+    imwrite("../../results/colored.jpg", colored);
 
 	waitKey();
 	//if (waitKey(30) >= 0) break;

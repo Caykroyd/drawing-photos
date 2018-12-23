@@ -138,11 +138,29 @@ template void ToneMapper::ComputeToneImage<uchar>(const Mat& input, Mat& tone_im
 void ToneMapper::SolveConjugateGradient(const Mat& ToneImage, const Mat& PencilTexture, Mat& BetaImage) const
 {
 	// TODO: Returns the beta parameter matrix by solving the conjugate gradient. ToneImage is type uchar.
+	int m = ToneImage.rows, n = ToneImage.cols;
+	int mText = PencilTexture.rows, nText = PencilTexture.cols;
 
-	Mat PencilTextureCropped = PencilTexture(cv::Range(0, ToneImage.rows), cv::Range(0, ToneImage.cols));
-	BetaImage = Mat(ToneImage.rows, ToneImage.cols, CV_32F);
-	// Calculate the Beta function...
+    Mat beta(m, n, CV_32F);
 
+    for(int i = 0; i < m; i++) {
+        for(int j = 0; j < n; j++) {
+            beta.at<float>(i, j) = (float) (log((double) ToneImage.at<uchar>(i, j)) /
+                                            log((double) PencilTexture.at<uchar>(i % mText, j % nText)));
+        }
+    }
+
+    cv::blur(beta, beta, {3, 3});
+
+    Mat textureImage(m, n, CV_32F);
+
+    for(int i = 0; i < m; i++) {
+        for(int j = 0; j < n; j++) {
+            textureImage.at<float>(i, j) = pow(PencilTexture.at<uchar>(i, j), beta.at<float>(i, j));
+        }
+    }
+
+    Remap<float>(textureImage, BetaImage);
 }
 
 void ToneMapper::MultipliedTextureMap(const Mat& PencilTexture, const Mat& BetaImage, Mat& T) const
@@ -152,5 +170,5 @@ void ToneMapper::MultipliedTextureMap(const Mat& PencilTexture, const Mat& BetaI
 	for (int i = 0; i < m; i++)
 		for (int j = 0; j < n; j++)
 			T.at<float>(i, j) = pow(PencilTexture.at<float>(i, j), BetaImage.at<float>(i, j));
-			
+
 }
