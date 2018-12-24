@@ -59,7 +59,9 @@ void combineDrawing(const Mat& sketch, const Mat& texture, Mat& drawing) {
 int main() {
 	Mat frame;
 	//webcam >> frame; // get a new frame from camera
-	frame = imread("../../image/photo.jpg");
+
+	// If the working directory is the root of the project, use image/photo.jpg
+	frame = imread("../../image/kids.jpg");
 	int m = frame.rows, n = frame.cols;
 
 	Mat sketch = Mat();
@@ -76,7 +78,9 @@ int main() {
     cvtColor(frame, colored, COLOR_BGR2YUV);
     vector<Mat> YUV;
     split(colored, YUV);
-	
+
+
+    // Compute tone map
 	ToneMapper tone_mapper = ToneMapper(42, 29, 29);
 
 	Mat tone_image = Mat(grey_scale.rows, grey_scale.cols, CV_8U);
@@ -84,18 +88,9 @@ int main() {
 	imshow("Tone", tone_image);
     imwrite("../../results/tone.jpg", tone_image);
 
-	// TODO:
-	Mat texture_frame = imread("../../texture/pencil_texture.png");
-	Mat pencil_texture;
-    cvtColor(texture_frame, pencil_texture, COLOR_BGR2GRAY);
-	Mat beta_image(m, n, CV_8U);
-	tone_mapper.SolveConjugateGradient(tone_image, pencil_texture, beta_image);
-	//Mat& final_texture = tone_mapper.MultipliedTextureMap(pencil_texture, beta_image);
-
 	// Calculate the sum of the sketch + tone: R = S.T (element-wise multiplication)
 	Mat drawing(m, n, CV_8U);
-	//combineDrawing(sketch, tone_image, drawing);
-    combineDrawing(sketch, beta_image, drawing);
+	combineDrawing(sketch, tone_image, drawing);
 
     imshow("Drawing", drawing);
     imwrite("../../results/drawing.jpg", drawing);
